@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Student Analytical Dashboard (Any Login)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; font-family: "Poppins", sans-serif; }
+  body { color:#fff; overflow-x:hidden; }
+
+  /* sections base */
+  section { display:none; min-height:100vh; width:100%; align-items:center; justify-content:center; flex-direction:column; transition:opacity .45s; }
+  .active { display:flex !important; }
+
+  /* LOGIN */
+  #login { background: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat; }
+  .login-card {
+    background: rgba(0,0,0,0.7);
+    padding:32px;
+    border-radius:18px;
+    width:92%;
+    max-width:420px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .login-card h2 { margin-bottom:14px; font-size:24px; }
+  .login-card input {
+    width:100%; padding:12px 14px; margin:10px 0; border-radius:10px; border:none; font-size:15px;
+  }
+  .btn {
+    display:inline-block; background:#28a745; border:none; color:#fff; padding:10px 22px; border-radius:10px; cursor:pointer; font-weight:600; margin-top:8px;
+  }
+
+  /* HEADER / NAV */
+  header { width:100%; padding:14px 12px; background:rgba(0,0,0,0.45); display:flex; justify-content:space-between; align-items:center; position:fixed; top:0; left:0; z-index:5; }
+  header h1 { font-size:18px; margin-left:6px; }
+  nav a { color:#fff; margin:0 8px; text-decoration:none; font-weight:600; cursor:pointer; }
+
+  /* DASHBOARD */
+  #dashboard { background: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat; padding-top:80px; align-items:flex-start; }
+  .cards { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:28px; width:100%; padding:18px; }
+  .card { width:220px; background:rgba(255,255,255,0.12); padding:16px; border-radius:12px; text-align:center; cursor:pointer; transition:transform .22s, background .22s; }
+  .card:hover { transform:translateY(-6px); background:rgba(255,255,255,0.2); }
+  .chart-box { width:92%; max-width:900px; margin:20px auto 60px; background:rgba(255,255,255,0.09); padding:16px; border-radius:12px; }
+
+  /* OTHER PAGES */
+  #attendance, #performance, #profile { padding-top:80px; align-items:flex-start; }
+  .content-wrap { width:92%; max-width:960px; margin:18px auto; background:rgba(0,0,0,0.45); padding:18px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.25); }
+  .profile-box { text-align:center; padding:18px; }
+  .profile-box img { width:120px; height:120px; border-radius:50%; margin-bottom:10px; }
+
+  /* small screens */
+  @media (max-width:600px){
+    header { padding:10px; }
+    .card { width:45%; }
+    .login-card { padding:22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="login" class="active">
+  <div class="login-card">
+    <h2>🎓 Student Analytical Dashboard</h2>
+    <p style="opacity:.9; margin-bottom:8px;">Enter any ID & Password — next page will open</p>
+    <input id="email" type="text" placeholder="Student email or ID (any)" />
+    <input id="password" type="password" placeholder="Password (any)" />
+    <!-- button type button to prevent form submit -->
+    <button id="loginBtn" class="btn">Login</button>
+    <p id="loginNote" style="color:#ffd6a5; margin-top:10px; font-size:13px;">(Demo: this accepts any input)</p>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" style="display:none;">
+  <header>
+    <h1>Welcome — Student Dashboard</h1>
+    <nav>
+      <a onclick="showPage('dashboard')">Home</a>
+      <a onclick="showPage('attendance')">Attendance</a>
+      <a onclick="showPage('performance')">Performance</a>
+      <a onclick="showPage('profile')">Profile</a>
+      <a onclick="showPage('login')">Logout</a>
+    </nav>
+  </header>
+
+  <div style="width:100%; padding-top:82px;">
+    <div class="cards">
+      <div class="card" onclick="showPage('attendance')">
+        <h3>📅 Attendance</h3>
+        <p>View attendance %</p>
+      </div>
+      <div class="card" onclick="showPage('performance')">
+        <h3>📈 Performance</h3>
+        <p>Subject marks & trends</p>
+      </div>
+      <div class="card" onclick="showPage('profile')">
+        <h3>👤 Profile</h3>
+        <p>Student personal info</p>
+      </div>
+      <div class="card" onclick="alert('This is a demo feature')">
+        <h3>🗂 Reports</h3>
+        <p>Download & print</p>
+      </div>
+    </div>
+
+    <div class="chart-box">
+      <canvas id="overallChart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ATTENDANCE -->
+<section id="attendance" style="display:none;">
+  <header>
+    <h1>Attendance Report</h1>
+    <nav>
+      <a onclick="showPage('dashboard')">Home</a>
+      <a onclick="showPage('performance')">Performance</a>
+      <a onclick="showPage('profile')">Profile</a>
+      <a onclick="showPage('login')">Logout</a>
+    </nav>
+  </header>
+
+  <div class="content-wrap" style="margin-top:22px;">
+    <h3 style="margin-bottom:12px;">Attendance Overview</h3>
+    <canvas id="attendanceChart"></canvas>
+    <div style="margin-top:14px; color:#fff; opacity:0.9;">
+      <p><strong>Jan:</strong> 92% &nbsp; <strong>Feb:</strong> 90% &nbsp; <strong>Mar:</strong> 95% &nbsp; <strong>Apr:</strong> 88%</p>
+    </div>
+  </div>
+</section>
+
+<!-- PERFORMANCE -->
+<section id="performance" style="display:none;">
+  <header>
+    <h1>Performance Report</h1>
+    <nav>
+      <a onclick="showPage('dashboard')">Home</a>
+      <a onclick="showPage('attendance')">Attendance</a>
+      <a onclick="showPage('profile')">Profile</a>
+      <a onclick="showPage('login')">Logout</a>
+    </nav>
+  </header>
+
+  <div class="content-wrap" style="margin-top:22px;">
+    <h3 style="margin-bottom:12px;">Marks Trend</h3>
+    <canvas id="performanceChart"></canvas>
+    <div style="margin-top:14px; color:#fff; opacity:0.9;">
+      <p>Subjects: Maths, CS, English, DBMS — see chart for trend</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROFILE -->
+<section id="profile" style="display:none;">
+  <header>
+    <h1>Student Profile</h1>
+    <nav>
+      <a onclick="showPage('dashboard')">Home</a>
+      <a onclick="showPage('attendance')">Attendance</a>
+      <a onclick="showPage('performance')">Performance</a>
+      <a onclick="showPage('login')">Logout</a>
+    </nav>
+  </header>
+
+  <div class="content-wrap" style="margin-top:22px;">
+    <div class="profile-box">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="student-photo" />
+      <h2>Rajvir Kaur</h2>
+      <p><strong>Roll:</strong> S101</p>
+      <p><strong>Class:</strong> BCA - III</p>
+      <p><strong>Email:</strong> demo@student.com</p>
+      <p><strong>Contact:</strong> 9876543210</p>
+      <p style="margin-top:10px; opacity:0.95;">Address: Nathmalpur, Morinda, Punjab</p>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ===== Accept ANY login (even empty) and open dashboard ===== */
+document.getElementById('loginBtn').addEventListener('click', function() {
+  // if you want to allow only non-empty uncomment lines below:
+  // const e = document.getElementById('email').value.trim();
+  // const p = document.getElementById('password').value.trim();
+  // if (!e && !p) { document.getElementById('loginNote').innerText = "Please enter something (or proceed anyway)"; return; }
+
+  // Directly open dashboard for ANY input:
+  showPage('dashboard');
+});
+
+/* Show page function: hide all sections, show chosen */
+function showPage(id) {
+  document.querySelectorAll('section').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  el.style.display = 'flex';
+  // small fade
+  setTimeout(()=> el.classList.add('active'), 10);
+  // rebuild charts only when relevant section visible (Chart.js can draw on hidden canvas issues)
+  if (id === 'dashboard') drawOverall();
+  if (id === 'attendance') drawAttendance();
+  if (id === 'performance') drawPerformance();
+}
+
+/* ===== Charts ===== */
+let overallChart, attendanceChart, performanceChart;
+
+function drawOverall() {
+  const ctx = document.getElementById('overallChart').getContext('2d');
+  if (overallChart) overallChart.destroy();
+  overallChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['English', 'Math', 'Science', 'Computer'],
+      datasets: [{ label:'Average Marks', data:[82,76,88,90], backgroundColor:['#74b9ff','#ffeaa7','#55efc4','#ff7675'] }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, height:200 }
+  });
+}
+
+function drawAttendance() {
+  const ctx = document.getElementById('attendanceChart').getContext('2d');
+  if (attendanceChart) attendanceChart.destroy();
+  attendanceChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels:['Present','Absent'], datasets:[{ data:[92,8], backgroundColor:['#00b894','#d63031'] }] },
+    options: { responsive:true, maintainAspectRatio:false }
+  });
+}
+
+function drawPerformance() {
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+  if (performanceChart) performanceChart.destroy();
+  performanceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels:['Jan','Feb','Mar','Apr','May'],
+      datasets:[{ label:'Marks Progress', data:[78,82,85,90,94], borderColor:'#0984e3', fill:false, tension:0.25 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false }
+  });
+}
+
+/* When page loads, ensure login visible */
+window.addEventListener('load', () => {
+  // keep login active by default (already visible)
+});
+</script>
+
+</body>
+</html>
